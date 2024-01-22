@@ -3,7 +3,10 @@ import Card from '@mui/joy/Card';
 import CardCover from '@mui/joy/CardCover';
 import CardContent from '@mui/joy/CardContent';
 import Typography from '@mui/joy/Typography';
-function ProductCategory({category}) {
+import { useParams } from 'react-router-dom';
+function ProductCategory() {
+  const {category} = useParams
+
   return (
     <>
     <div className='d-flex justify-content-center mb-3'>

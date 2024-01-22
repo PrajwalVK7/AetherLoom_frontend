@@ -8,6 +8,7 @@ import NavDropdown from 'react-bootstrap/NavDropdown';
 import Offcanvas from 'react-bootstrap/Offcanvas';
 import CartWishDiv from './CartWishDiv';
 import { RiMenu3Fill } from "react-icons/ri";
+import { Link } from 'react-router-dom';
 
 function Header() {
     return (
@@ -15,7 +16,7 @@ function Header() {
             {[false].map((expand) => (
                 <Navbar key={expand} expand={expand} className="bg-body-tertiary ">
                     <Container fluid>
-                        <Navbar.Brand href="#" className='ms-5'>AetherLoom</Navbar.Brand>
+                        <Navbar.Brand className='ms-5'><Link to={'/'}>AetherLoom</Link></Navbar.Brand>
                         <div className='ms-auto me-2 d-none d-lg-block'>
                             <CartWishDiv />
                         </div>
@@ -55,8 +56,10 @@ function Header() {
                                     </NavDropdown>
                                 </Nav>
                                 <Form className="d-flex justify-content-evenly">
-                                    <Button variant="outline-success">Signin</Button>
-                                    <Button variant="outline-success">Signup</Button>
+                                    <Link to={'/login'}><Button variant="outline-success">Signin</Button>
+                                    </Link>
+                                    <Link to={'/register'}>   <Button variant="outline-success">Signup</Button>
+                                    </Link>
                                 </Form>
                                 <div className='ms-auto mt-4  d-lg-none'>
                                     <CartWishDiv />
