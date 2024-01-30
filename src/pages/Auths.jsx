@@ -1,11 +1,56 @@
 import Lottie from 'lottie-react'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Row, Col, Form, Button } from 'react-bootstrap'
 import authAnimation from '../assets/animations/Animation - 1705074827320.json'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { setLoginStatus } from '../redux/loginStatusSlice'
+import { registerAPI } from '../services/allAPI'
 function Auths({ register }) {
     const isregister = register ? true : false
     console.log(isregister)
+    const navigate = useNavigate()
+    const dispatch = useDispatch();
+    const loginStatus = useSelector((state) => state.loginStatusReducer.isLoggedin);
+    console.log("Login status:", loginStatus);
+    const [userData, setUserData] = useState({
+        username: "",
+        email: "",
+        password: ""
+    })
+    console.log("========== userData for reg");
+    console.log(userData)
+    const handleRegister = async () => {
+        const { username, email, password } = userData
+        if (!username || !email || !password) {
+            alert("please add all details")
+        }
+        else {
+            try {
+                const response = await registerAPI(userData);
+                if (response.status === 200) {
+                    alert("Signup successfull")
+                    navigate('/login')
+
+                }
+
+            } catch (err) {
+                console.log(err)
+            }
+        }
+
+    }
+    const handleLogin = () => {
+        dispatch(setLoginStatus(true));
+        if (loginStatus) {
+            navigate('/')
+        }
+    };
+
+    // Use useEffect to log the updated login status
+    useEffect(() => {
+        console.log("Login status:", loginStatus);
+    }, [loginStatus]);
     return (
         <>
             <div className='container-fluid'>
@@ -18,29 +63,31 @@ function Auths({ register }) {
                                     {isregister &&
                                         <Form.Group className="mb-3 " controlId="formBasicEmail">
                                             <Form.Label className='text-primary'>Name</Form.Label>
-                                            <Form.Control type="text" placeholder="Enter Your Name" />
+                                            <Form.Control type="text" placeholder="Enter Your Name" value={userData.username} onChange={(e) => setUserData({ ...userData, username: e.target.value })} />
                                         </Form.Group>
                                     }
                                     <Form.Group className="mb-3 " controlId="formBasicEmail">
                                         <Form.Label className='text-primary'>Email</Form.Label>
-                                        <Form.Control type="email" placeholder="Enter Your Name" />
+                                        <Form.Control value={userData.email} type="email" placeholder="Enter Your Name" onChange={(e) => setUserData({ ...userData, email: e.target.value })} />
                                     </Form.Group>
                                     <Form.Group className="mb-3 " controlId="formBasicEmail">
                                         <Form.Label className='text-primary'>Password</Form.Label>
-                                        <Form.Control type="password" placeholder="Enter Your Name" />
+                                        <Form.Control value={userData.password} type="password" placeholder="Enter Your Name" onChange={(e) => setUserData({ ...userData, password: e.target.value })} />
                                     </Form.Group>
 
                                     {
                                         isregister ?
                                             <div>
                                                 <div className=' d-flex justify-content-center'>
-                                                    <Button variant='success' className=' rounded text-primary mb-5'>Signup</Button>
+                                                    <Button variant='success' className=' rounded text-primary mb-5' onClick={handleRegister}>Signup</Button>
                                                 </div> <p>Already a User Click here to  <Link to='/login' style={{ textDecoration: 'none', color: 'blue' }}>Login</Link></p>
                                             </div> :
                                             <div>
-                                                <Link to='/dashboard' style={{textDecoration:'none'}}>                                    <div className=' d-flex justify-content-center'>
-                                                    <Button variant='success' className=' rounded text-primary mb-5'>Signin</Button>
-                                                </div></Link>
+                                                {/* <Link to='/dashboard' style={{ textDecoration: 'none' }}> */}
+                                                <div className=' d-flex justify-content-center'>
+                                                    <Button variant='success' className=' rounded text-primary mb-5' onClick={handleLogin}>Signin</Button>
+                                                </div>
+                                                {/* </Link> */}
                                                 <p> New User ? Click here to <Link to='/register' style={{ textDecoration: 'none', color: 'blue' }}>Register</Link></p>
 
                                             </div>

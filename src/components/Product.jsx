@@ -7,21 +7,43 @@ import IconButton from '@mui/joy/IconButton';
 import Typography from '@mui/joy/Typography';
 // import BookmarkAdd from '@mui/icons-material/BookmarkAddOutlined';
 import exLight from '../assets/Product-Single-img25-768x768.jpg'
-import { Link } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { addToWishList, removeFromWishList } from '../redux/wishListSlice';
 import { addToCart } from '../redux/cartSlice';
 function Product({ product, wishList }) {
     const dispatch = useDispatch();
     const isWishList = wishList ? true : false;
-
     console.log(isWishList)
-
+    const loginStatus = useSelector((state) => state.loginStatusReducer.isLoggedin);
+    console.log("Login status:", loginStatus);
+    const navigate = useNavigate()
 
     if (!product) {
         return null;
     }
+    const handleAddToCart = ()=>{
+        // only add to cart, if logged in
+        if(loginStatus){
+            dispatch(addToCart(product))
 
+        }
+        else{
+            alert("Please login");
+            navigate('/login')
+
+        }
+    }
+    const handleAddToWishlist = ()=>{
+        if(loginStatus){
+            dispatch(addToWishList(product))
+        }
+        else{
+            alert("Please login");
+            navigate('/login')
+
+        }
+    }
     return (
         <>
             <Card key={product.id} sx={{ width: 320 }} className="mt-5">
@@ -34,7 +56,7 @@ function Product({ product, wishList }) {
                         sx={{ position: 'absolute', top: '0.875rem', right: '0.5rem' }}
                     >
                         {!isWishList ?
-                            <div onClick={() => dispatch(addToWishList(product))} >
+                            <div onClick={handleAddToWishlist } >
                             <i className="fa-solid fa-heart me-2"></i>
                         </div>
                             :
@@ -69,7 +91,7 @@ function Product({ product, wishList }) {
                         color="primary"
                         aria-label="Explore Bahamas Islands"
                         sx={{ ml: 'auto', alignSelf: 'center', fontWeight: 600 }}
-                        onClick={()=>dispatch(addToCart(product))}
+                        onClick={handleAddToCart}
                     >
                         <i class="fa-solid fa-cart-shopping me-2 "></i>
                     </Button>

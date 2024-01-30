@@ -7,6 +7,7 @@ import ListGroup from 'react-bootstrap/ListGroup';
 import defaultDp from '../assets/defualt_dp.png'
 import { Button } from 'react-bootstrap';
 import Collapse from 'react-bootstrap/Collapse';
+import OrderHistory from './OrderHistory';
 
 function CartWishDiv() {
     const wishlist = useSelector((state) => state.wishListReducer);
@@ -45,6 +46,9 @@ function CartWishDiv() {
                         <ListGroup.Item>Address</ListGroup.Item>
                     </ListGroup>
                     <div className='d-flex justify-content-center align-items-center mb-4'>
+                       <OrderHistory/>
+                    </div>
+                    <div className='d-flex justify-content-center align-items-center mb-4'>
                         <Button onClick={() => setOpen(!open)}>
                             Edit or Add Details
                         </Button>
@@ -77,6 +81,7 @@ function CartWishDiv() {
                             </ListGroup>
                         </div>
                     </Collapse>
+                    <button className='btn btn-warning'>logout</button>
 
                 </Offcanvas.Body>
             </Offcanvas>
