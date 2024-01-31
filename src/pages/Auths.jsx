@@ -5,7 +5,7 @@ import authAnimation from '../assets/animations/Animation - 1705074827320.json'
 import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { setLoginStatus } from '../redux/loginStatusSlice'
-import { registerAPI } from '../services/allAPI'
+import { loginAPI, registerAPI } from '../services/allAPI'
 function Auths({ register }) {
     const isregister = register ? true : false
     console.log(isregister)
@@ -32,6 +32,10 @@ function Auths({ register }) {
                     alert("Signup successfull")
                     navigate('/login')
 
+
+                }
+                else{
+                    alert(response.response.data)
                 }
 
             } catch (err) {
@@ -40,13 +44,22 @@ function Auths({ register }) {
         }
 
     }
-    const handleLogin = () => {
+    const handleLogin = async () => {
         dispatch(setLoginStatus(true));
-        if (loginStatus) {
-            navigate('/')
+        const { email, password } = userData;
+        if (!email || !password) {
+            alert("Please fill the form completely")
+        } else {
+            const response = await loginAPI(userData);
+            if (response.status === 200) {
+                alert("Login Successfull")
+                navigate('/')
+            }
+            else{
+                alert(response.response.data)
+            }
         }
-    };
-
+    }
     // Use useEffect to log the updated login status
     useEffect(() => {
         console.log("Login status:", loginStatus);

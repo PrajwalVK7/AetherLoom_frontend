@@ -7,3 +7,7 @@ import { commonAPI } from "./commonAPI"
 export const registerAPI = async (user) => {
     return await commonAPI("POST", `${baseURL}user/register`, user, "")
 }
+// user signin
+export const loginAPI = async(user)=>{
+    return await commonAPI("POST",`${baseURL}user/login`,user,"")
+}
