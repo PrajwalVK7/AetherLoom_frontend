@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import Homecarousel from '../components/Homecarousel'
 import { Button, Col, Row } from 'react-bootstrap'
 import "../style/Home.css"
@@ -7,20 +7,37 @@ import Product from '../components/Product'
 import Gallery from '../components/Gallery'
 import Customeevent from '../components/Customeevent'
 import { Link } from 'react-router-dom'
-import { useDispatch, useSelector } from 'react-redux'
-import { fetchProducts } from '../redux/allProductSlice'
+import { getFeatured, getRecentProducts } from '../services/allAPI'
 function Home() {
 
-  const gallerySize = 1000;
+  const gallerySize = 800;
 
-  const dispatch = useDispatch();
+  const [products, setProducts] = useState([]);
+  const [featuredProduct, setFeaturedProduct] = useState([])
+  const [images, setImages] = useState([])
+  const getRecentProductsFromDb = async () => {
+    const result = await getRecentProducts()
+    if (result.status === 200) {
+      setProducts(result.data)
+    }
+  }
+  const getFeaturedProducts = async () => {
+    const result = await getFeatured()
+    if (result.status === 200) {
+      setFeaturedProduct(result.data)
+      featuredProduct.map((item)=>{
+        setImages(item.images)
+      })
+    }
+  }
   useEffect(() => {
-    dispatch(fetchProducts());
-  }, []);
+    getRecentProductsFromDb()
+    getFeaturedProducts()
+  }, [])
 
-  const products = useSelector((state) => state.allProductSlice.allProducts.products);
-  // console.log("products:", products);
-  const categories = products?.map(item => item.category).filter((value, index, self) => self.indexOf(value) === index)
+  console.log("products:", products.images);
+
+
 
 
   return (
@@ -34,18 +51,8 @@ function Home() {
       </div>
       <div className='mt-5 mb-5 container-fluid'>
         <h2 className='ms-5 mb-3'><u>Explore</u></h2>
-        <Row >
-          {
-            categories?.length > 0 ?
-              categories.map((category) => (
-                <Col lg={2} md={4} sm={6} xs={6}>
-                  <Link to={`/dashboard/${category}`}><ProductCategory category={category} />
-                  </Link>
-                </Col>
-              )) : <p></p>
-          }
+        <ProductCategory />
 
-        </Row>
       </div>
       <div id="latest_product" className='container'>
         <div className='text-center'>
@@ -57,7 +64,7 @@ function Home() {
           <Row>
             {
               products?.length > 0 ?
-                products.slice().reverse().slice(0, 6).map((product) => (
+                products.map((product) => (
                   <Col lg={4} md={4} sm={12} xs={12} className='d-flex justify-content-center align-items-center'>
                     <Product product={product} />
                   </Col>
@@ -67,7 +74,7 @@ function Home() {
         </div>
 
       </div>
-      <div id='new_product' className='mt-5 mb-5 container'>
+      {/* <div id='new_product' className='mt-5 mb-5 container'>
         <div className='mb-5 text-center'>
           <h3>Featured Products</h3>
           <h6>Lorem ipsum dolor sit amet.</h6>
@@ -76,26 +83,22 @@ function Home() {
         <div className=' mt-5 mb-5'>
           <Row>
 
-            <Col lg={4} md={4} className='d-flex justify-content-center align-items-center'>
-              <Product />
-
-            </Col>
-            <Col lg={4} md={4} className='d-flex justify-content-center align-items-center'>
-              <Product />
-
-            </Col>
-            <Col lg={4} md={4} className='d-flex justify-content-center align-items-center'>
-              <Product />
-
-            </Col>
+          {
+              featuredProduct?.length > 0 ?
+              featuredProduct.map((product) => (
+                  <Col lg={4} md={4} sm={12} xs={12} className='d-flex justify-content-center align-items-center'>
+                    <Product product={featuredProduct} />
+                  </Col>
+                )) : <p>No data</p>
+            }
 
 
           </Row>
         </div>
 
-      </div>
+      </div> */}
       <div id='gallery' className='d-flex justify-content-center mt-5 mb-5 container-fluid '>
-        <Gallery width={gallerySize} />
+        <Gallery width={gallerySize} images={products.map(product => product.thumbnail)} />
       </div>
 
       {/* to add custom events or offers */}

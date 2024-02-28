@@ -7,15 +7,18 @@ import { BrowserRouter } from 'react-router-dom';
 import './assets/bootstrap.min.css'
 import { Provider } from 'react-redux';
 import store from './redux/store';
+import ContextShare from './context/ContextShare';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <Provider store={store}>
-    <BrowserRouter>
-    <App />
-    </BrowserRouter>
+      <ContextShare>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </ContextShare>
     </Provider>
-    
+
   </React.StrictMode>
 );
 

@@ -6,6 +6,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { setLoginStatus } from '../redux/loginStatusSlice'
 import { loginAPI, registerAPI } from '../services/allAPI'
+import { ToastContainer, toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css';
+
 function Auths({ register }) {
     const isregister = register ? true : false
     console.log(isregister)
@@ -34,7 +37,7 @@ function Auths({ register }) {
 
 
                 }
-                else{
+                else {
                     alert(response.response.data)
                 }
 
@@ -48,15 +51,19 @@ function Auths({ register }) {
         dispatch(setLoginStatus(true));
         const { email, password } = userData;
         if (!email || !password) {
-            alert("Please fill the form completely")
+            toast.warning("Please fill the form completely", {
+                position: 'top-center'
+            })
         } else {
             const response = await loginAPI(userData);
             if (response.status === 200) {
-                alert("Login Successfull")
+                sessionStorage.setItem("existingUser", JSON.stringify(response.data.existingUser))
+                sessionStorage.setItem("token", response.data.token)
+                // alert("Login Successfull")
                 navigate('/')
             }
-            else{
-                alert(response.response.data)
+            else {
+                toast.error(response.response.data)
             }
         }
     }
@@ -66,6 +73,7 @@ function Auths({ register }) {
     }, [loginStatus]);
     return (
         <>
+            <ToastContainer />
             <div className='container-fluid'>
                 <Row className='mt-5 '>
                     <Col lg={6}>

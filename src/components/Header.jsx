@@ -14,7 +14,7 @@ function Header() {
     return (
         <>
             {[false].map((expand) => (
-                <Navbar key={expand} expand={expand} className="bg-body-tertiary ">
+                <Navbar key={expand} expand={expand} className="bg-body-tertiary fixed-top ">
                     <Container fluid>
                         <Navbar.Brand className='ms-5'><Link to={'/'}>AetherLoom</Link></Navbar.Brand>
                         <div className='ms-auto me-2 d-none d-lg-block'>
