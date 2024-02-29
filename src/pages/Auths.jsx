@@ -8,6 +8,7 @@ import { setLoginStatus } from '../redux/loginStatusSlice'
 import { loginAPI, registerAPI } from '../services/allAPI'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css';
+import Swal from 'sweetalert2'
 
 function Auths({ register }) {
     const isregister = register ? true : false
@@ -59,8 +60,12 @@ function Auths({ register }) {
             if (response.status === 200) {
                 sessionStorage.setItem("existingUser", JSON.stringify(response.data.existingUser))
                 sessionStorage.setItem("token", response.data.token)
-                // alert("Login Successfull")
-                navigate('/')
+                Swal.fire({
+                    title: "Hey :)",
+                    text: "Login Successfull",
+                    icon: "success"
+                  });              
+                    navigate('/')
             }
             else {
                 toast.error(response.response.data)
@@ -74,7 +79,7 @@ function Auths({ register }) {
     return (
         <>
             <ToastContainer />
-            <div className='container-fluid'>
+            <div className='container-fluid' style={{marginTop:'100px'}}>
                 <Row className='mt-5 '>
                     <Col lg={6}>
                         <div >

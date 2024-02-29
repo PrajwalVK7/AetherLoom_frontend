@@ -1,37 +1,44 @@
-import React, { useContext, useEffect } from 'react'
-import { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Collapse from 'react-bootstrap/Collapse';
 import Form from 'react-bootstrap/Form';
 import ListGroup from 'react-bootstrap/ListGroup';
-import { getUserData, placeOrder } from '../services/allAPI';
+import { getUserData, placeOrder, removeAllFromCarts } from '../services/allAPI';
 import { useNavigate } from 'react-router-dom';
 import { editUserProfileContext } from '../context/ContextShare';
+import Swal from 'sweetalert2';
+import { useDispatch } from 'react-redux';
+import { clearCart } from '../redux/cartSlice';
 
-
-
-function Orderbox({ orderSummary }) {
-    const navigate = useNavigate()
+function Orderbox({ orderSummary, itemCount, productID }) {
+    const navigate = useNavigate();
+    const dispatch = useDispatch()
     const [show, setShow] = useState(false);
-    console.log("Order summary inside order", orderSummary)
+    const [orderData, setOrderData] = useState({
+        address: '',
+        products: [],
+        total: 0,
+        itemCount: 0,
+        modeOfPayment: '',
+    });
+    // console.log("order summary ",orderSummary)
+
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
     const [open, setOpen] = useState(false);
-    // const [token, setToken] = useState('');
-    const { editProfileResponse, seteditProfileResponse } = useContext(editUserProfileContext)
+    const { editProfileResponse, seteditProfileResponse } = useContext(editUserProfileContext);
+    const [address, setaddress] = useState('');
+    const token = sessionStorage.getItem('token');
+    const [userData, setUserData] = useState({});
 
-    const [address, setaddress] = useState("");
-    const token = sessionStorage.getItem("token")
-    const [userData, setUserData] = useState({})
-    console.log("asdfghjk", address)
     const getUserProfile = async () => {
-        const token = sessionStorage.getItem("token")
+        const token = sessionStorage.getItem('token');
         const reqHeader = {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-        }
-        // console.log(reqHeader)
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+        };
+
         try {
             const result = await getUserData(reqHeader);
             if (result.status === 200) {
@@ -40,74 +47,112 @@ function Orderbox({ orderSummary }) {
                 if (street && district && pincode && state) {
                     const userAddress = `${street},${district},${pincode},${state}`;
                     setaddress(userAddress);
-    
-                    setOrderData(prevOrderData => ({
+
+                    setOrderData((prevOrderData) => ({
                         ...prevOrderData,
-                        address: userAddress
+                        address: userAddress,
                     }));
-        }
-    }
+                }
+            }
         } catch (err) {
             console.error(err);
         }
-    }
+    };
+
     useEffect(() => {
         if (sessionStorage.token) {
-            getUserProfile()
+            getUserProfile();
+        } else {
+            navigate('/login');
         }
-        else {
-            navigate('/login')
-        }
-    }, [token,editProfileResponse])
+    }, [token, editProfileResponse]);
 
-    let totalAmount = orderSummary?.total + (orderSummary?.total * orderSummary?.gst / 100)
-    console.log("totel count", totalAmount)
-    const [orderData, setOrderData] = useState({
-        address: address,
-        productID: orderSummary.productID ,
-        total: totalAmount,
-        itemCount: orderSummary.itemCount,
-        modeOfPayment: ""
-    });
-
-    console.log(orderData, "sdfghjkl;")
-    console.log("Product id:", orderSummary.productID)
+    useEffect(() => {
+        const totalAmount = orderSummary.products.reduce((total, product) => total + product.total, 0);
+        setOrderData((prevOrderData) => ({
+            ...prevOrderData,
+            total: totalAmount,
+            itemCount: itemCount,
+            products: orderSummary.products,
+        }));
+    }, [orderSummary, itemCount]);
 
     const handleOrder = async () => {
-        console.log("Token,", token);
         const reqHeader = {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
         };
-        
-        const { productID, total, itemCount, modeOfPayment,address } = orderData;
-        console.log("Product id:", productID);
     
-        if (productID && total && itemCount && modeOfPayment && address) {
-            if (modeOfPayment === "cod") {
-                try {
-                    const response = await placeOrder(orderData, reqHeader);
-                    console.log(response);
-                    if (response.status === 200) {
-                        alert("Your Order has been placed")
-                        handleClose();
+        const { products, modeOfPayment, address, total } = orderData;
+    
+        if (products.length > 0 && modeOfPayment && address) {
+            try {
+                for (const product of products) {
+                    let individualOrderData;
+                    if (product.product) {
+                        // cart
+                        individualOrderData = {
+                            address,
+                            productID: product.product._id,
+                            total: product.total,
+                            itemCount: product.itemCount,
+                            modeOfPayment,
+                        };
+                    } else {
+                        // single
+                        individualOrderData = {
+                            address,
+                            productID: product.productID,
+                            total: product.total,
+                            itemCount: product.itemCount,
+                            modeOfPayment,
+                        };
                     }
-                } catch (error) {
-                    console.error("Error:", error);
+    
+                    const response = await placeOrder(individualOrderData, reqHeader);
+                    // console.log('order data', response.data);
+    
+                    if (response.status === 200) {
+                        dispatch(clearCart())
+                        const response = await removeAllFromCarts(reqHeader)
+                        console.group(response)
+                        let timerInterval;
+                        Swal.fire({
+                            title: 'Hey hey, Confirming your order',
+                            timer: 2000,
+                            timerProgressBar: true,
+                            didOpen: () => {
+                                Swal.showLoading();
+                                timerInterval = setInterval(() => {
+                                    const timer = Swal.getPopup()?.querySelector('b');
+                                    if (timer) {
+                                        timer.textContent = `${Swal.getTimerLeft()}`;
+                                    }
+                                }, 100);
+                            },
+                            willClose: () => {
+                                clearInterval(timerInterval);
+                            },
+                        }).then((result) => {
+                            if (result.dismiss === Swal.DismissReason.timer) {
+                                console.log('I was closed by the timer');
+                            }
+                        });
+                    }
                 }
-            } else {
-                if (!modeOfPayment) {
-                    alert("Please select the mode of payment");
-                }
-                if (modeOfPayment !== "cod") {
-                    alert(`${modeOfPayment} mode is unavailable now...`);
-                }
+    
+                handleClose();
+            } catch (error) {
+                console.error('Error:', error);
             }
         } else {
-            alert("Please fill in all the required details.");
+            alert('Please fill in all the required details.');
         }
     };
     
+    
+    
+      
 
     return (
         <>
@@ -115,81 +160,99 @@ function Orderbox({ orderSummary }) {
                 Buy Now
             </Button>
 
-            <Modal
-                show={show}
-                onHide={handleClose}
-                backdrop="static"
-                keyboard={false}
-            >
-                <Modal.Header closeButton>
-                </Modal.Header>
+            <Modal show={show} onHide={handleClose} backdrop="static" keyboard={false}>
+                <Modal.Header closeButton></Modal.Header>
                 <Modal.Body>
-                    <div className='container d-flex justify-content-center align-items-center flex-column'>
-                        <div className='p-3 w-50'>
-                            <h2 className='text-center' >Order Summary</h2>
-                            <ListGroup variant="flush" className='text-center'>
-                                <ListGroup.Item>Amount : {orderSummary.total}</ListGroup.Item>
-                                <ListGroup.Item>GST :  {orderSummary.gst}</ListGroup.Item>
-                                {/* <ListGroup.Item>Discount : 123</ListGroup.Item> */}
-                                <ListGroup.Item>Total Amount : {totalAmount}</ListGroup.Item>
+                    <div className="container d-flex justify-content-center align-items-center flex-column">
+                        <div className="p-3 w-50">
+                            <h2 className="text-center">Order Summary</h2>
+                            <ListGroup variant="flush" className="text-center">
+                                {orderSummary.products.map((product, index) => (
+                                    <ListGroup.Item key={index}>
+                                        {product.itemCount}  - Total: {product.total}
+                                    </ListGroup.Item>
+                                ))}
+                                <ListGroup.Item>Total Amount : {orderData.total}</ListGroup.Item>
                             </ListGroup>
                         </div>
-                        <Button style={{ backgroundColor: 'green', color: 'black' }}
+                        <Button
+                            style={{ backgroundColor: 'green', color: 'black' }}
                             onClick={() => setOpen(!open)}
                             aria-expanded={open}
-                            variant='success'
+                            variant="success"
                         >
                             Proceed To Buy
                         </Button>
                         <Collapse in={open}>
-
-                            <div className='mt-5'>
-                                <div className='mt-2 text-center text-black'>
-                                    <p><h5 >Address</h5>
-                                        {address}</p>
+                            <div className="mt-5">
+                                <div className="mt-2 text-center text-black">
+                                    <p>
+                                        <h5>Address</h5>
+                                        {address}
+                                    </p>
                                 </div>
-                                <Form className='text-center'>
-                                    <h3 className='text-center'>Select Mode Of Payment</h3>
+                                <Form className="text-center">
+                                    <h3 className="text-center">Select Mode Of Payment</h3>
                                     <div>
-                                        <input type="radio" id='upi' name='payment' value={'upi'} onChange={(e) => setOrderData({ ...orderData, modeOfPayment: e.target.value })} />
-                                        <label className='ms-3 ' htmlFor="upi">
-                                            <div className='card p-1 text-center' style={{ width: '200px', backgroundColor: 'orange', color: 'black' }}>
-                                                <h4 >UPI</h4>
+                                        <input
+                                            type="radio"
+                                            id="upi"
+                                            name="payment"
+                                            value={'upi'}
+                                            onChange={(e) => setOrderData({ ...orderData, modeOfPayment: e.target.value })}
+                                        />
+                                        <label className="ms-3 " htmlFor="upi">
+                                            <div className="card p-1 text-center" style={{ width: '200px', backgroundColor: 'orange', color: 'black' }}>
+                                                <h4>UPI</h4>
                                             </div>
                                         </label>
                                     </div>
                                     <br />
                                     <div>
-                                        <input type="radio" id='debitCard' name='payment' value={'debitCard'} onChange={(e) => setOrderData({ ...orderData, modeOfPayment: e.target.value })} />
-                                        <label className='ms-3' htmlFor="debitCard">
-                                            <div className='card p-1 text-center' style={{ width: '200px', backgroundColor: 'orange', color: 'black' }}>
-                                                <h4 >Debit Card</h4>
+                                        <input
+                                            type="radio"
+                                            id="debitCard"
+                                            name="payment"
+                                            value={'debitCard'}
+                                            onChange={(e) => setOrderData({ ...orderData, modeOfPayment: e.target.value })}
+                                        />
+                                        <label className="ms-3" htmlFor="debitCard">
+                                            <div className="card p-1 text-center" style={{ width: '200px', backgroundColor: 'orange', color: 'black' }}>
+                                                <h4>Debit Card</h4>
                                             </div>
                                         </label>
-                                    </div> <br />
+                                    </div>{' '}
+                                    <br />
                                     <div>
-                                        <input type="radio" id='cod' name='payment' value={'cod'} onChange={(e) => setOrderData({ ...orderData, modeOfPayment: e.target.value })} />
-                                        <label className='ms-3' htmlFor="cod">
-                                            <div className='card p-1 text-center' style={{ width: '200px', backgroundColor: 'orange', color: 'black' }}>
-                                                <h4 >Cash On Delivery</h4>
+                                        <input
+                                            type="radio"
+                                            id="cod"
+                                            name="payment"
+                                            value={'cod'}
+                                            onChange={(e) => setOrderData({ ...orderData, modeOfPayment: e.target.value })}
+                                        />
+                                        <label className="ms-3" htmlFor="cod">
+                                            <div className="card p-1 text-center" style={{ width: '200px', backgroundColor: 'orange', color: 'black' }}>
+                                                <h4>Cash On Delivery</h4>
                                             </div>
                                         </label>
                                     </div>
-                                    <button style={{ backgroundColor: 'green', color: 'black', fontWeight: '700' }} type='button' className='mt-3 btn btn-success'
-                                        onClick={handleOrder}>Place Order</button>
+                                    <button
+                                        style={{ backgroundColor: 'green', color: 'black', fontWeight: '700' }}
+                                        type="button"
+                                        className="mt-3 btn btn-success"
+                                        onClick={handleOrder}
+                                    >
+                                        Place Order
+                                    </button>
                                 </Form>
                             </div>
                         </Collapse>
-
-
-                    </div >
-
+                    </div>
                 </Modal.Body>
             </Modal>
-
-
         </>
-    )
+    );
 }
 
-export default Orderbox
+export default Orderbox;

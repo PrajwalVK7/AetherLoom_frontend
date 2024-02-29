@@ -3,6 +3,7 @@ import { Button, Col, Row } from 'react-bootstrap'
 import Product from '../components/Product'
 import { Link, useParams } from 'react-router-dom';
 import { getAllCategories, getAllProducts, getProductsByCategory } from '../services/allAPI';
+import Empty from '../components/Empty'
 function Dashboard() {
     const title = useParams()
     const [categoryName, setCategoryName] = useState('')
@@ -63,6 +64,9 @@ console.log("Length of allProducts:", allProducts?.length);
 
     return (
         <>
+        <div style={{height:'100px'}}>
+
+        </div>
             <div className='container mt-5 mb-5'>
                 <h2 className='text-center' >Explore Our Products</h2>
                 <div className='d-flex justify-content-center align-items-center mt-3 mb-2'>
@@ -88,7 +92,11 @@ console.log("Length of allProducts:", allProducts?.length);
                                 <Col lg={4} md={4} sm={6} xs={12} className="d-flex justify-content-center" key={product._id}>
                                     <Product product={product} />
                                 </Col>
-                            )) : <p>No Product</p>
+                            )) : <div className='d-flex justify-content-center' style={{width:'500px',marginLeft:'25%'}}>
+                                <div>
+                                <Empty/>
+                                </div>
+                            </div>
 
                         }
                     </Row>

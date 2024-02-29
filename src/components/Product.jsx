@@ -22,10 +22,10 @@ function Product({ product, wishList }) {
     const {deleteItemWishlistResponse,setDeleteItemWishlistResponse} = useContext(deleteItemWishlistContext)
     const {addToWishlistResponse,setAddToWishlistResponse} = useContext(addToWishlistContext)
 
-
+const [isLoading,setisLoading] = useState(false)
     const dispatch = useDispatch();
     const isWishList = wishList ? true : false;
-    console.log(product)
+    // console.log(product)
     // const loginStatus = useSelector((state) => state.loginStatusReducer.isLoggedin);
     // console.log("Login status:", loginStatus);
     const navigate = useNavigate()
@@ -33,6 +33,8 @@ function Product({ product, wishList }) {
     if (!product) {
         return null;
     }
+
+
     const handleAddToCart = async () => {
         const count = 1;
         if (sessionStorage.token) {
@@ -103,7 +105,7 @@ function Product({ product, wishList }) {
         <>
             <ToastContainer />
 
-            <Card key={product._id} sx={{ width: 320 }} className="mt-5">
+            <Card  key={product._id} sx={{ width: 320 }} className="mt-5">
                 <div>
                     <Typography level="title-lg">{product.name}</Typography>
                     <IconButton

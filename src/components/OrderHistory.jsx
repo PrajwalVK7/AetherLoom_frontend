@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect } from 'react';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import { useState } from 'react';
@@ -6,68 +6,74 @@ import { getOrdersAPI } from '../services/allAPI';
 
 function OrderHistory() {
   const [show, setShow] = useState(false);
+  const [orders, setOrders] = useState([]);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-  const [orders, setOrders] = useState([])
+
   const getOrders = async () => {
     const token = sessionStorage.getItem('token');
-    // console.log("token", token);
-
     const reqHeader = {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
     };
-    const result = await getOrdersAPI(reqHeader)
-    console.log(result)
+    const result = await getOrdersAPI(reqHeader);
+    console.log(result.data,"a"); 
+        console.log(result)
     if (result.status === 200) {
-      setOrders(result.data)
+      setOrders(result.data);
+    } else {
+      console.log('Error fetching Orders');
     }
-    else {
-      console.log("Error fetching Orers")
-    }
-  }
+  };
+
   useEffect(() => {
-    getOrders()
-  }, [])
+    getOrders();
+  }, []);
+
   return (
     <>
       <Button variant="primary" onClick={handleShow}>
         Orders
       </Button>
-      <Modal
-        show={show}
-        onHide={handleClose}
-        backdrop="static"
-        keyboard={false}
-      >
+      <Modal show={show} onHide={handleClose} backdrop="static" keyboard={false}>
         <Modal.Header closeButton>
           <Modal.Title>Order History</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div>
-            <table className='table'>
-              <tbody>
+            <table className="table">
+              <thead>
                 <tr>
-                  <td>#</td>
-                  <td>product details</td>
-                  <td>nos</td>
-                  <td>Amount</td>
-
+                  <th>#</th>
+                  <th>Product Name</th>
+                  <th>Quantity</th>
+                  <th>Total Amount</th>
                 </tr>
-                {
-                  orders?.length > 0 ?
-                    orders.map((item,index) => (
-                      <tr>
-                        <td>{index+1}</td>
-                        <td>{item.productID?item.productID.name:item._id}</td>
+              </thead>
+              <tbody>
+              {orders?.length > 0 ? (
+                orders.map((order, index) => (
+                  <React.Fragment key={order._id}>
+                    {order.items.map((item, itemIndex) => (
+                      <tr key={`${order._id}-${itemIndex}`}>
+                        <td>{index + 1}</td>
+                        <td>
+                          {item.productID?.name ||
+                            'Product not available'}
+                        </td>
                         <td>{item.itemCount}</td>
                         <td>{item.total}</td>
                       </tr>
-                    )) :<p>No orders yet</p>
-                }
+                    ))}
+                  </React.Fragment>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4">No orders yet</td>
+                </tr>
+              )}
               </tbody>
-            
             </table>
           </div>
         </Modal.Body>
@@ -81,4 +87,4 @@ function OrderHistory() {
   );
 }
 
-export default OrderHistory
+export default OrderHistory;

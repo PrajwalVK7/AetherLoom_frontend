@@ -10,6 +10,7 @@ import OrderHistory from './OrderHistory';
 import { getUserData, updateProfileData } from '../services/allAPI';
 import { baseURL } from '../services/baseURL';
 import { editUserProfileContext } from '../context/ContextShare';
+import Swal from 'sweetalert2';
 
 function UserProfile() {
     const [show, setShow] = useState(false);
@@ -31,9 +32,26 @@ function UserProfile() {
     const [profilePreview, setProfilePreview] = useState('')
     const [updateStatus, setUpdateStatus] = useState()
     const handleLogout = () => {
-        sessionStorage.removeItem("token");
-        navigate('/');
-        handleClose();
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You wanna leave!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, Logout!"
+          }).then((result) => {
+            if (result.isConfirmed) {
+                sessionStorage.removeItem("token");
+                sessionStorage.removeItem("existingUser");
+                navigate('/');
+                handleClose();
+              Swal.fire({
+                title: "See you later!",
+                icon: "success"
+              });
+            }
+          });
     };
     useEffect(() => {
         if (sessionStorage.token) {

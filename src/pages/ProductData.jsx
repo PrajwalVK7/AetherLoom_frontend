@@ -14,9 +14,8 @@ function ProductData() {
     const { id } = useParams()
     const [count, setCount] = useState(1)
     const [product, setProduct] = useState()
-const [productsByCategory,setProductsByCategory] = useState([])
-    let total_price = count * product?.price 
-
+    const [productsByCategory, setProductsByCategory] = useState([])
+    let total_price = count * product?.price
 
     const increment = () => {
         setCount(count + 1)
@@ -24,67 +23,65 @@ const [productsByCategory,setProductsByCategory] = useState([])
     const decrement = () => {
         if (count > 1) {
             setCount(count - 1)
-
         }
     }
+
     const getProduct = async () => {
         if (id) {
             const result = await getProductById(id);
             if (result.status === 200) {
                 setProduct(result.data)
-
             }
         }
     }
-    console.log(product, "asdfghjkl");
 
     useEffect(() => {
         getProduct()
     }, [id])
 
-    const [orderSummary,setOrderSummary] = useState({
-        productID:"",
-        total:"",
-        itemCount:1,
-        gst:""
+    const [orderSummary, setOrderSummary] = useState({
+        products: [],
+        total: "",
+        itemCount: 1,
+        gst: ""
+    })
 
-    })   
-     console.log("order Summary..",orderSummary)
-     const getAllProductsByCategoryFromDb = async () => {
+    const getAllProductsByCategoryFromDb = async () => {
         const result = await getProductsByCategory(product?.category)
         if (result.status === 200) {
             setProductsByCategory(result.data)
         }
-        
     }
-    useEffect(()=>{
+    useEffect(() => {
         getAllProductsByCategoryFromDb()
-    },[])
+    }, [product])
+
     const scrollToTop = () => {
-        console.log("to Top")
-        topRef.current.scrollIntoView({ behaviour: 'smooth', block: 'start' })
+        topRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
 
-    const setOrderSummaryPlace =()=>{
+    const setOrderSummaryPlace = () => {
         setOrderSummary({
-            productID:product?._id,
-            total:total_price,
-            itemCount:count,
-            gst:product?.gst
-    
+            products: [
+                {
+                    productID: product?._id,
+                    total: total_price,
+                    itemCount: count,
+                    gst: product?.gst
+                }
+            ],
+            total: total_price
         })
     }
+
     return (
         <>
-        <div style={{marginTop:'120px'}}>
-
-        </div>
+            <div style={{ marginTop: '120px' }}></div>
             {product && <Row ref={topRef} className='container' id='top'>
                 <Col lg={6} className='d-flex justify-content-center align-items-center flex-column mt-5 mb-5 container-fluid '>
                     <h1>{product?.name}</h1>
                     <div id='gallery ' >
                         <ProductImages imagesData={product?.images} />
-                        {/* <Gallery images={product.images} width={galleryWidth} height={galleryHeight} /> */}
                     </div>
                 </Col>
                 <Col>
@@ -95,16 +92,17 @@ const [productsByCategory,setProductsByCategory] = useState([])
                         <p>{product.description} <br />
                             tags : ..</p>
                         <div className='card rounded d-inline-block p-3 '>
-                            <button className='btn' onClick={decrement} ><i class="fa-solid fa-minus"></i></button>
+                            <button className='btn' onClick={decrement}><i className="fa-solid fa-minus"></i></button>
                             <span className='shade me-5 ms-5'>{count}</span>
-                            <button className='btn' onClick={increment}><i class="fa-solid fa-plus"></i></button>
+                            <button className='btn' onClick={increment}><i className="fa-solid fa-plus"></i></button>
                         </div>
                         <div className=' mt-3 p-2'>
                             <h3>Total Price : {total_price}</h3>
                         </div>
                         <div>
-                            <Button onClick={setOrderSummaryPlace} variant='success' style={{ backgroundColor: 'green ', color: 'white' }} className='mt-5'><Orderbox orderSummary={orderSummary} /></Button>
-
+                            <Button onClick={setOrderSummaryPlace} variant='success' style={{ backgroundColor: 'green ', color: 'white' }} className='mt-5'>
+                                <Orderbox orderSummary={orderSummary} itemCount={count} productID={product._id} />
+                            </Button>
                         </div>
                     </div>
                 </Col>
@@ -115,10 +113,9 @@ const [productsByCategory,setProductsByCategory] = useState([])
                     {productsByCategory?.length > 0 ?
                         productsByCategory.map((item) => (
                             <div onClick={scrollToTop}>
-                                <Product  product={item} />
+                                <Product product={item} />
                             </div>
-                        )) : <p>aa</p>
-
+                        )) : <p></p>
                     }
                 </div>
             </div>
@@ -126,4 +123,4 @@ const [productsByCategory,setProductsByCategory] = useState([])
     )
 }
 
-export default ProductData
+export default ProductData;

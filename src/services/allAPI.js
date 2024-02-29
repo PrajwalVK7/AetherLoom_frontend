@@ -99,3 +99,8 @@ export const removeFromWishlist = async(itemID,reqHeader)=>{
 export const getOrdersAPI = async(reqHeader)=>{
    return await commonAPI("GET",`${baseURL}orders`,{},reqHeader)
 }
+
+// after order delete from cart
+export const removeAllFromCarts = async(reqHeader)=>{
+   return await commonAPI("DELETE",`${baseURL}cart/order=true`,{},reqHeader)
+}
